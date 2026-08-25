@@ -3,17 +3,24 @@ import streamlit as st
 
 st.title("⏱️ เกมเติมศัพท์จับเวลา")
 
+# 1. กำหนดค่าเริ่มต้นใน session_state ถ้ายังไม่มี
 if "ans1_val" not in st.session_state:
     st.session_state.ans1_val = ""
 if "ans2_val" not in st.session_state:
     st.session_state.ans2_val = ""
 
-def reset_game():
-    st.session_state.ans1_val = ""
-    st.session_state.ans2_val = "" 
-    st.session_state.start = time.time() 
-    st.session_state.is_ended = False 
 
+# 📌 ฟังก์ชันเคลียร์ค่าเมื่อกดปุ่มเริ่มใหม่
+def reset_game():
+    st.session_state.ans1_val = ""  # เคลียร์ค่าช่องข้อ 1
+    st.session_state.ans2_val = ""  # เคลียร์ค่าช่องข้อ 2
+    st.session_state.start = time.time()  # เริ่มเวลาใหม่
+    st.session_state.is_ended = False  # ปิด Dialog
+
+
+# ----------------------------------------------------
+# 📌 ฟังก์ชัน MessageBox (Dialog)
+# ----------------------------------------------------
 @st.dialog("📊 สรุปผลการเล่นเกม")
 def show_result_dialog(ans1, ans2):
     st.balloons()
@@ -22,20 +29,21 @@ def show_result_dialog(ans1, ans2):
     u_ans1 = ans1.strip().lower()
     u_ans2 = ans2.strip().lower()
 
-
+    # ตรวจข้อ 1
     if u_ans1 == "apple":
         st.success("✅ ข้อ 1: ถูกต้อง")
         score += 1
     else:
         st.error(f"❌ ข้อ 1: ยังไม่ถูกต้อง (คุณตอบ '{u_ans1}')")
 
-
+    # ตรวจข้อ 2
     if u_ans2 == "fish":
         st.success("✅ ข้อ 2: ถูกต้อง")
         score += 1
     else:
         st.error(f"❌ ข้อ 2: ยังไม่ถูกต้อง (คุณตอบ '{u_ans2}')")
 
+    # ✏️ [พื้นที่สำหรับนักเรียน]: เพิ่มตรวจข้อ 3, 4 ตรงนี้
 
     st.info(f"🏆 ได้คะแนนรวม: {score} คะแนน")
 
@@ -45,8 +53,12 @@ def show_result_dialog(ans1, ans2):
         st.error("💀 You lose!")
 
 
+# ----------------------------------------------------
+# 1. ปุ่มเริ่มเล่นเกม
+# ----------------------------------------------------
 st.button("🎮 เริ่มเล่นเกม", on_click=reset_game)
 
+# 2. แถบแสดงเวลานับถอยหลัง
 if "start" in st.session_state and not st.session_state.get("is_ended", False):
     time_left = int(30 - (time.time() - st.session_state.start))
 
@@ -58,6 +70,7 @@ if "start" in st.session_state and not st.session_state.get("is_ended", False):
 
 st.divider()
 
+# 3. ช่องรับคำตอบ (ใช้ value ผูกกับตัวแปรตรงๆ เพื่อสั่งเคลียร์ได้)
 ans1 = st.text_input(
     "ข้อ 1: An `a _ _ l e` a day keeps the doctor away. 🍎",
     value=st.session_state.ans1_val,
@@ -67,10 +80,14 @@ ans2 = st.text_input(
     value=st.session_state.ans2_val,
 )
 
+# อัปเดตค่าล่าสุดเข้าตัวแปร
 st.session_state.ans1_val = ans1
 st.session_state.ans2_val = ans2
 
+# ✏️ [พื้นที่สำหรับนักเรียน]: เพิ่มข้อ 3, 4 ตรงนี้
 
+
+# 4. ปุ่มส่งคำตอบ
 if "start" in st.session_state and not st.session_state.get("is_ended", False):
     if st.button("📥 ส่งคำตอบ"):
         st.session_state.is_ended = True
@@ -79,91 +96,107 @@ if "start" in st.session_state and not st.session_state.get("is_ended", False):
     time.sleep(1)
     st.rerun()
 
+# 5. แสดง Dialog ผลลัพธ์
 if st.session_state.get("is_ended", False):
     show_result_dialog(ans1, ans2)
 import streamlit as st
 
+# ==========================================
+# จุดที่ 1: เพิ่มการกำหนดค่าเริ่มต้นใน session_state (ans3_val และ ans4_val)
+# ==========================================
+if "ans1_val" not in st.session_state:
+    st.session_state.ans1_val = ""
+if "ans2_val" not in st.session_state:
+    st.session_state.ans2_val = ""
 if "ans3_val" not in st.session_state:
     st.session_state.ans3_val = ""
-
 if "ans4_val" not in st.session_state:
     st.session_state.ans4_val = ""
 
+# ส่วนหัวข้อและ UI
+st.title("⏱️ เกมเติมศัพท์จับเวลา")
 
-ans3 = st.text_input(
-    "คำตอบข้อ 3",
-    value=st.session_state.ans3_val
-)
-
-ans4 = st.text_input(
-    "คำตอบข้อ 4",
-    value=st.session_state.ans4_val
-)
-
-
-if st.button("ตรวจคำตอบ"):
-
+# ปุ่มเริ่มเล่นเกม / เริ่มใหม่
+if st.button("🎮 เริ่มเล่นเกม"):
+    # ==========================================
+    # จุดที่ 2: เพิ่มการเคลียร์ค่าเมื่อกดปุ่มใหม่
+    # ==========================================
+    st.session_state.ans1_val = ""
+    st.session_state.ans2_val = ""
     st.session_state.ans3_val = ""
     st.session_state.ans4_val = ""
+    st.rerun()
 
+st.divider()
 
-    ans3 = st.text_input("คำตอบข้อ 3")
-    ans4 = st.text_input("คำตอบข้อ 4")
+# แสดงโจทย์ข้อ 1 และ 2
+st.write("ข้อ 1: An **a _ _ l e** a day keeps the doctor away. 🍎")
+ans1 = st.text_input("คำตอบข้อ 1", value=st.session_state.ans1_val, key="input1", label_visibility="collapsed")
 
+st.write("ข้อ 2: Cats love to eat **f _ s h** . 🐟")
+ans2 = st.text_input("คำตอบข้อ 2", value=st.session_state.ans2_val, key="input2", label_visibility="collapsed")
 
-u_ans3 = ans3.strip().lower()
-u_ans4 = ans4.strip().lower()
+# ==========================================
+# จุดที่ 6: เพิ่มช่องรับคำตอบ ans3 และ ans4
+# ==========================================
+st.write("ข้อ 3: Monkeys love to eat yellow **b _ n _ n _** . 🍌")
+ans3 = st.text_input("คำตอบข้อ 3", value=st.session_state.ans3_val, key="input3", label_visibility="collapsed")
 
+st.write("ข้อ 4: We can drink fresh water from a **c _ c _ n _ t** on the beach. 🥥")
+ans4 = st.text_input("คำตอบข้อ 4", value=st.session_state.ans4_val, key="input4", label_visibility="collapsed")
 
-correct_ans3 = "คำตอบข้อ3"
-correct_ans4 = "คำตอบข้อ4"
+# ==========================================
+# จุดที่ 7: เพิ่มการอัปเดตค่าล่าสุดเข้าตัวแปร session_state
+# ==========================================
+st.session_state.ans1_val = ans1
+st.session_state.ans2_val = ans2
+st.session_state.ans3_val = ans3
+st.session_state.ans4_val = ans4
 
-score = 0
-
-if u_ans3 == correct_ans3:
-    score += 1
-
-if u_ans4 == correct_ans4:
-    score += 1
-
-
-if u_ans3 == correct_ans3 and u_ans4 == correct_ans4:
-    score = 4
-
-
-
-ans3 = st.text_input(
-    "กรอกคำตอบข้อ 3",
-    key="input_ans3"
-)
-
-ans4 = st.text_input(
-    "กรอกคำตอบข้อ 4",
-    key="input_ans4"
-)
-
-
-
+# ปุ่มส่งคำตอบและตรวจผลลัพธ์
 if st.button("ส่งคำตอบ"):
+    # แปลงเป็นตัวพิมพ์เล็กและตัดช่องว่าง
+    u_ans1 = ans1.strip().lower()
+    u_ans2 = ans2.strip().lower()
+    
+    # ==========================================
+    # จุดที่ 3: สรุปผลการเล่นเกม u_ans3 และ u_ans4
+    # ==========================================
+    u_ans3 = ans3.strip().lower()
+    u_ans4 = ans4.strip().lower()
 
-    st.session_state.ans3_val = ans3
-    st.session_state.ans4_val = ans4
+    score = 0
+    if u_ans1 == "apple":
+        score += 1
+    if u_ans2 == "fish":
+        score += 1
+        
+    # ==========================================
+    # จุดที่ 4: เพิ่มการตรวจข้อ 3 และข้อ 4
+    # ==========================================
+    if u_ans3 == "banana":
+        score += 1
+    if u_ans4 == "coconut":
+        score += 1
 
+    # ==========================================
+    # จุดที่ 8: เพิ่มการแสดง Dialog ผลลัพธ์ ans3, ans4
+    # จุดที่ 5: เพิ่มเงื่อนไขคะแนน score == 4
+    # ==========================================
+    @st.dialog("สรุปผลการเล่นเกม")
+    def show_result(s):
+        st.write(f"**คะแนนที่คุณได้:** {s} / 4 คะแนน")
+        st.write(f"- ข้อ 1 ตอบ: {ans1}")
+        st.write(f"- ข้อ 2 ตอบ: {ans2}")
+        st.write(f"- ข้อ 3 ตอบ: {ans3}")
+        st.write(f"- ข้อ 4 ตอบ: {ans4}")
+        
+        if s == 4:
+            st.success("🎉 ยินดีด้วย! คุณตอบถูกต้องทั้งหมด!")
+        else:
+            st.warning("พยายามอีกนิดนะ! ลองใหม่อีกครั้ง")
 
-    st.write("คำตอบข้อ 3 :", st.session_state.ans3_val)
-    st.write("คำตอบข้อ 4 :", st.session_state.ans4_val)
-
-
-
-if st.button("ดูผลลัพธ์"):
-
-    @st.dialog("ผลลัพธ์")
-    def show_result():
-        st.write("คำตอบข้อ 3 :", st.session_state.ans3_val)
-        st.write("คำตอบข้อ 4 :", st.session_state.ans4_val)
-        st.write("คะแนน :", score)
-
-    show_result()
+    show_result(score)
 st.divider()
 st.write("นางสาวปารมี จันทร์เลิศ เลขที่ 16 ม.4/10")
 
