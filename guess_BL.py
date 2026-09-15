@@ -1,14 +1,23 @@
 import time
 import streamlit as st
 
+# ============================================================
+# ตั้งค่าหน้าเว็บ
+# ============================================================
+
 st.set_page_config(
-    page_title="วายทั่วไทย ใครให้ทาย",
+    page_title="เกมตอบคำถามสาววาย",
     page_icon="💗",
     layout="centered"
 )
 
-st.title("💗 เกมตอบคำถามเพื่อพิสูจน์ว่าคุณคือสาววายตัวจริง!!")
+st.title("💗 เกมตอบคำถามสาววายจับเวลา")
 st.write("🎯 มีทั้งหมด 25 ข้อ | ⏰ เวลา 5 นาที")
+
+
+# ============================================================
+# คำถาม 25 ข้อ
+# ============================================================
 
 questions = [
     "1. นักแสดงคู่ไหนรับบทเป็น “คินน์” และ “พอร์ช” ใน KinnPorsche The Series?",
@@ -37,9 +46,15 @@ questions = [
     "24. นักแสดงคนใดเล่นเรื่อง ชอกะเชย์คู่กัน A BOSS AND A BABE?",
     "25. ใน ปลาบนฟ้า คู่พระนายหลักเรียนคณะอะไร?"
 ]
+
+
+# ============================================================
+# คำตอบที่ถูกต้อง
+# ============================================================
+
 answers = [
     ["มาย - อาโป", "มายอาโป", "มาย อาโป"],
-    ["ไบร์ท วชิรวิชญ์", "ไบร์ท"],
+    ["ไบร์ท วชิรวิชญ์", "ไบร์ท", "วชิรวิชญ์"],
     ["เอิร์ท - มิกซ์", "เอิร์ทมิกซ์", "เอิร์ท มิกซ์"],
     ["โอม ภวัต", "โอม", "ภวัต"],
     ["นนน"],
@@ -48,7 +63,7 @@ answers = [
     ["บอส"],
     ["วินนี่ - สตางค์", "วินนี่สตางค์", "วินนี่ สตางค์"],
     ["ธีร์ - เวฟ", "ธีร์เวฟ", "ธีร์ เวฟ"],
-    ["พี่เจนใหญ่" ,"เจนใหญ่"],
+    ["พี่เจนใหญ่"],
     ["อิน - องศา", "อินองศา", "อิน องศา"],
     ["ริวจิน"],
     ["ชีวา"],
@@ -63,14 +78,16 @@ answers = [
     ["ชินชิลล่า"],
     ["ฟอส - บุ๊ค", "ฟอสบุ๊ค", "ฟอส บุ๊ค"],
     [
-        "ทันตแพทย์ฺ - แพทย์",
-        "ทันตแพทย์ แพทย์",
-        "ทันตแพทย์-แพทย์"
+        "ทันตแพทยศาสตร์ - แพทย์ศาสตร์",
+        "ทันตแพทยศาสตร์ แพทย์ศาสตร์",
+        "ทันตแพทยศาสตร์-แพทย์ศาสตร์"
     ]
 ]
 
-if "answers_user" not in st.session_state:
-    st.session_state.answers_user = [""] * 25
+
+# ============================================================
+# Session State
+# ============================================================
 
 if "start" not in st.session_state:
     st.session_state.start = None
@@ -78,23 +95,40 @@ if "start" not in st.session_state:
 if "is_ended" not in st.session_state:
     st.session_state.is_ended = False
 
+if "show_result" not in st.session_state:
+    st.session_state.show_result = False
+
+if "answers_user" not in st.session_state:
+    st.session_state.answers_user = [""] * 25
+
+
+# ============================================================
+# ฟังก์ชันเริ่มเกมใหม่
+# ============================================================
 
 def reset_game():
 
+    # เริ่มเวลาใหม่
     st.session_state.start = time.time()
 
+    # ตั้งสถานะเกม
     st.session_state.is_ended = False
+    st.session_state.show_result = False
 
+    # ล้างคำตอบในตัวแปร
     st.session_state.answers_user = [""] * 25
 
-    # ล้างค่าช่องคำตอบเดิม
+    # ⭐ ล้างค่าของ text_input โดยตรง
     for i in range(25):
 
         key = f"answer_{i}"
 
-        if key in st.session_state:
-            del st.session_state[key]
+        st.session_state[key] = ""
 
+
+# ============================================================
+# ฟังก์ชันทำความสะอาดคำตอบ
+# ============================================================
 
 def clean_text(text):
 
@@ -113,14 +147,19 @@ def clean_text(text):
     return text
 
 
+# ============================================================
+# ฟังก์ชันตรวจคำตอบ
+# ============================================================
 
 def check_answer(user_answer, correct_answers):
 
     user_answer = clean_text(user_answer)
 
+    # ถ้าไม่ได้ตอบ
     if user_answer == "":
         return False
 
+    # ตรวจคำตอบที่ยอมรับได้
     for correct in correct_answers:
 
         if user_answer == clean_text(correct):
@@ -129,13 +168,20 @@ def check_answer(user_answer, correct_answers):
     return False
 
 
+# ============================================================
+# คำนวณคะแนน
+# ============================================================
+
 def calculate_score():
 
     score = 0
 
     for i in range(25):
 
-        user_answer = st.session_state.answers_user[i]
+        user_answer = st.session_state.get(
+            f"answer_{i}",
+            ""
+        )
 
         if check_answer(user_answer, answers[i]):
             score += 1
@@ -143,6 +189,9 @@ def calculate_score():
     return score
 
 
+# ============================================================
+# Dialog สรุปผล
+# ============================================================
 
 @st.dialog("📊 สรุปผลการเล่นเกม")
 def show_result_dialog():
@@ -157,7 +206,7 @@ def show_result_dialog():
         f"""
         <div style="
             text-align: center;
-            font-size: 50px;
+            font-size: 55px;
             font-weight: bold;
             color: #ff4b8b;
             margin: 10px;
@@ -170,6 +219,9 @@ def show_result_dialog():
 
     st.divider()
 
+    # ========================================================
+    # เกณฑ์คะแนน
+    # ========================================================
 
     if score == 25:
 
@@ -194,42 +246,60 @@ def show_result_dialog():
     else:
 
         st.warning(
-            "✌️ คะแนนต่ำกว่า 10\n\n"
-            "พยายามอีกหน่อย"
+            "✌️ พยายามอีกหน่อย"
         )
 
     st.divider()
 
+    # ========================================================
+    # รายละเอียดคำตอบ
+    # ========================================================
 
-
-    st.subheader("📝 ตรวจคำตอบ")
+    st.subheader("📝 ผลการตอบคำถาม")
 
     for i in range(25):
 
-        user_answer = st.session_state.answers_user[i]
+        user_answer = st.session_state.get(
+            f"answer_{i}",
+            ""
+        )
 
         if check_answer(user_answer, answers[i]):
 
             st.success(
-                f"ข้อ {i + 1} ✅ ถูก — {user_answer}"
+                f"ข้อ {i + 1} ✅ ถูก"
             )
 
         else:
 
             st.error(
-                f"ข้อ {i + 1} ❌ ผิด — "
-                f"คำตอบของคุณ: "
-                f"{user_answer if user_answer else 'ไม่ได้ตอบ'}"
+                f"ข้อ {i + 1} ❌ ผิด"
+            )
+
+            st.caption(
+                f"คำตอบที่ถูก: {answers[i][0]}"
             )
 
 
+# ============================================================
+# ปุ่มเริ่มเกมใหม่
+# ============================================================
 
-st.button(
+if st.button(
     "🎮 เริ่มเล่นเกมใหม่",
-    on_click=reset_game,
     use_container_width=True
-)
+):
 
+    reset_game()
+
+    # ⭐ บังคับให้หน้าเว็บโหลดใหม่
+    # เพื่อให้ช่องคำตอบทุกช่องเป็นค่าว่าง
+    st.rerun()
+
+
+# ============================================================
+# ตัวจับเวลา 5 นาที
+# ============================================================
 
 if (
     st.session_state.start is not None
@@ -238,7 +308,10 @@ if (
 
     elapsed = time.time() - st.session_state.start
 
+    # ========================================================
     # 5 นาที = 300 วินาที
+    # ========================================================
+
     time_left = int(300 - elapsed)
 
     if time_left > 0:
@@ -268,6 +341,7 @@ if (
 
     else:
 
+        # หมดเวลา
         st.session_state.is_ended = True
 
         st.rerun()
@@ -275,6 +349,10 @@ if (
 
 st.divider()
 
+
+# ============================================================
+# แสดงคำถาม
+# ============================================================
 
 if st.session_state.start is None:
 
@@ -286,16 +364,16 @@ else:
 
     for i in range(25):
 
-        user_answer = st.text_input(
+        st.text_input(
             questions[i],
-            value=st.session_state.answers_user[i],
             key=f"answer_{i}",
             disabled=st.session_state.is_ended
         )
 
-        st.session_state.answers_user[i] = user_answer
 
-
+# ============================================================
+# ปุ่มส่งคำตอบ
+# ============================================================
 
 if (
     st.session_state.start is not None
@@ -314,13 +392,21 @@ if (
         st.rerun()
 
 
+# ============================================================
+# แสดงผลลัพธ์
+# ============================================================
 
 if st.session_state.is_ended:
 
     show_result_dialog()
 
 
+# ============================================================
+# ส่วนท้าย
+# ============================================================
 
 st.divider()
 
-st.write("I 💗 BL ")
+st.write("💗 ขอให้สนุกกับเกมนะ!")
+
+st.write("นางสาวดีใจ ยิ้มแย้ม เลขที่ 5 ม.4/5")
